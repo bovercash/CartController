@@ -5,6 +5,7 @@
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <page.h>
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #define printByte(args)  write(args);
@@ -101,8 +102,7 @@ void loop() {
 }
 
 void getPage() {
-    server.send(200, "text/html", "<html><meta name=\"viewport\" content=\"width=200, initial-scale=2\"><head><\/head><body><link rel=\"stylesheet\" href=\"https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/font-awesome\/4.7.0\/css\/font-awesome.min.css\"><div style=\"text-align:center\"><form action=\"\/do\"><table style=\"text-align:center\"> <tr> <td> <span>LEFT<\/span> <div style=\"margin-bottom:5px\"> <button class=\"btn\" type=\"submit\" name=\"action\" value=\"lup\"><i class=\"fa fa-arrow-circle-up\"><\/i><\/button> <\/div> <div style=\"margin-bottom:5px\"> <button class=\"btn\" type=\"submit\" name=\"action\" value=\"ldown\"><i class=\"fa fa-arrow-circle-down\"><\/i><\/button> <\/div> <\/td> <td> <span>BOTH<\/span> <div style=\"margin-bottom:5px\"> <button class=\"btn\" type=\"submit\" name=\"action\" value=\"ahead\"><i class=\"fa fa-arrow-circle-up\"><\/i><\/button> <\/div> <div style=\"margin-bottom:5px\"> <button class=\"btn\" type=\"submit\" name=\"action\" value=\"reverse\"><i class=\"fa fa-arrow-circle-down\"><\/i><\/button> <\/div> <div style=\"margin-bottom:5px\"> <button class=\"btn\" type=\"submit\" name=\"action\" value=\"stop\"><i class=\"fa fa-stop-circle\"><\/i><\/button> <\/div> <\/td> <td> <span>RIGHT<\/span> <div style=\"margin-bottom:5px\"> <button class=\"btn\" type=\"submit\" name=\"action\" value=\"rup\"><i class=\"fa fa-arrow-circle-up\"><\/i><\/button> <\/div> <div style=\"margin-bottom:5px\"> <button class=\"btn\" type=\"submit\" name=\"action\" value=\"rdown\"><i class=\"fa fa-arrow-circle-down\"><\/i><\/button> <\/div> <\/td> <\/tr><\/table><\/form><\/div><\/body><\/html>");
-
+    server.send(200, "text/html", PAGE_HTML);
 }
 
 void performAction() {
