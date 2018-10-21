@@ -15,8 +15,10 @@
 
 #define SSID "foo"
 #define PASSWORD "bar"
-#define PWM1 D6
-#define PWM2 D7
+#define L1 D6
+#define L2 D7
+#define R1 D0
+#define R2 D5
 #define MOTOR_SP 255
 
 // This will represent the motor direction.  If I have things backwards
@@ -24,10 +26,19 @@
 #define RB = 1
 #define LB = 2
 
-int lState = 0;
-int rState = 0;
-int lMoveStep = 0;
-int rMoveStep = 0;
+// Action Masks
+byte stopped = 1 << 0;
+byte leftForward = 1 << 2;
+byte leftBackward = 1 << 4;
+byte righForward = 1 << 8;
+byte rightBackward = 1 << 16;
+byte forward = 1 << 32;
+byte backward = 1 << 64;
+
+// Global Variables
+byte actoin = stopped;
+byte currentStep = 0;
+byte MAX_STEP = 5;
 
 ESP8266WebServer server(80);
 LiquidCrystal_I2C lcd(0x3F,20,4);
@@ -38,8 +49,10 @@ void setup() {
     Serial.println("\n");
     Serial.println("Starting WeMos D1 mini");
 
-    pinMode(PWM1,   OUTPUT);
-    pinMode(PWM2,   OUTPUT);
+    pinMode(L1,   OUTPUT);
+    pinMode(L2,   OUTPUT);
+    pinMode(R1,   OUTPUT);
+    pinMode(R2,   OUTPUT);
 
     lcd.init(); 
     lcd.backlight();
@@ -87,7 +100,13 @@ int connectToNetwork() {
 
 void loop() {
 
-        if(lState == 1){
+        if(actoin & stopped){
+            digitalWrite(L1, LOW);
+            digitalWrite(L2, LOW);
+            digitalWrite(R1, LOW);
+            digitalWrite(R2, LOW);
+        } else if (action & )
+
             Serial.println("Moving Forwards");
             digitalWrite(PWM1, LOW);
             analogWrite(PWM2, MOTOR_SP);
@@ -99,6 +118,10 @@ void loop() {
         }
 
     server.handleClient();
+}
+
+void setMotors(){
+
 }
 
 void getPage() {
