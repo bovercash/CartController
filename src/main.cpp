@@ -1,11 +1,12 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h> 
-
+#include <Ticker.h>
 #include <ESP8266WebServer.h>
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <page.h>
+#include <motor.h>
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #define printByte(args)  write(args);
@@ -13,35 +14,26 @@
 #define printByte(args)  print(args,BYTE);
 #endif
 
-#define SSID "foo"
-#define PASSWORD "bar"
-#define L1 D6
-#define L2 D7
-#define R1 D0
-#define R2 D5
-#define MOTOR_SP 255
+#define SSID "xxxxxxx"
+#define PASSWORD "xxxxxxx"
 
-// This will represent the motor direction.  If I have things backwards
-// it will be easier to reverse the values than rewrite or rewire
-#define RB = 1
-#define LB = 2
+#define L1 D0
+#define L2 D5
+#define R1 D6
+#define R2 D7
 
-// Action Masks
-byte stopped = 1 << 0;
-byte leftForward = 1 << 2;
-byte leftBackward = 1 << 4;
-byte righForward = 1 << 8;
-byte rightBackward = 1 << 16;
-byte forward = 1 << 32;
-byte backward = 1 << 64;
+void connectToNetwork();
+void getPage();
+void performAction();
+void stepMotor();
 
 // Global Variables
-byte actoin = stopped;
-byte currentStep = 0;
-byte MAX_STEP = 5;
-
 ESP8266WebServer server(80);
 LiquidCrystal_I2C lcd(0x3F,20,4);
+
+Motor motor(L1, L2, R1, R2, 10, 240);
+
+Ticker timer(stepMotor, 500);
 
 void setup() {
     Serial.begin(9600);
@@ -49,19 +41,18 @@ void setup() {
     Serial.println("\n");
     Serial.println("Starting WeMos D1 mini");
 
-    pinMode(L1,   OUTPUT);
-    pinMode(L2,   OUTPUT);
-    pinMode(R1,   OUTPUT);
-    pinMode(R2,   OUTPUT);
+    motor.init();
 
     lcd.init(); 
     lcd.backlight();
     lcd.home();
 
     connectToNetwork();
+    timer.start();
 }
 
-int connectToNetwork() {
+void connectToNetwork() {
+
     WiFi.begin(SSID, PASSWORD);
     Serial.print("\nConnecting to network...");
 
@@ -75,7 +66,7 @@ int connectToNetwork() {
             lcd.print("Connection Failed");
 
             WiFi.disconnect();
-            return -1;
+            return;
         }
 
         delay(1000);
@@ -99,29 +90,9 @@ int connectToNetwork() {
 }
 
 void loop() {
-
-        if(actoin & stopped){
-            digitalWrite(L1, LOW);
-            digitalWrite(L2, LOW);
-            digitalWrite(R1, LOW);
-            digitalWrite(R2, LOW);
-        } else if (action & )
-
-            Serial.println("Moving Forwards");
-            digitalWrite(PWM1, LOW);
-            analogWrite(PWM2, MOTOR_SP);
-            lState = 0;
-        } else if(lState == -1){
-            digitalWrite(PWM2, LOW);
-            analogWrite(PWM1, MOTOR_SP);
-            lState = 0;
-        }
-
+    timer.update();    
     server.handleClient();
-}
-
-void setMotors(){
-
+    delay(100);
 }
 
 void getPage() {
@@ -132,14 +103,28 @@ void performAction() {
     if(server.hasArg("action")){
            Serial.println(server.arg("action"));
 
-            if(server.arg("action") == "lup" || server.arg("action") == "ahead"){
-                lState = 1;
-            } else if(server.arg("action") == "ldown" || server.arg("action") == "reverse"){
-                lState = -1;
-            } else {
-                lState = 0;
+            if(server.arg("action") == "ahead"){
+                motor.setAction(MotorActions::FORWARD);
+            } else if(server.arg("action") == "reverse"){
+               motor.setAction(MotorActions::BACKWARD);
+            } else if(server.arg("action") == "stop"){
+               motor.setAction(MotorActions::STOPPED);
+            } else if(server.arg("action") == "lup"){
+               motor.setAction(MotorActions::LEFT_FORWARD);
+            } else if(server.arg("action") == "ldown"){
+               motor.setAction(MotorActions::LEFT_BACKWARD);
+            } else if(server.arg("action") == "rup"){
+               motor.setAction(MotorActions::RIGHT_FORWARD);
+            } else if(server.arg("action") == "rdown"){
+               motor.setAction(MotorActions::RIGHT_BACKWARD);
             }
     }
     getPage();
+}
+
+
+void stepMotor() {
+    Serial.println("Stepping Motors");
+    motor.step();
 }
 
